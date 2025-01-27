@@ -1,0 +1,20 @@
+{{{
+    exports({ to: app.configPath('prisma.ts')})
+}}}
+import type Prisma from '@prisma/client'
+
+import { defineConfig } from '@galadrim/adonis-prisma'
+
+const prismaConfig = defineConfig({
+  user: {
+    sanitizePassword: false,
+    uniqueIds: ['id'],
+  },
+})
+
+export default prismaConfig
+
+declare module '@galadrim/adonis-prisma/types' {
+  export interface PrismaClient extends Prisma.PrismaClient {}
+  export interface ResolvedConfig extends InferConfig<typeof prismaConfig> {}
+}

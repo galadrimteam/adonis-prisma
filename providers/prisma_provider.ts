@@ -1,6 +1,8 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { ApplicationService } from '@adonisjs/core/types'
-import { extendedPrisma, ExtendedPrismaClient } from '../src/prisma_service.js'
+import { PrismaClient } from '@prisma/client'
+import { generatePrismaClient } from '../src/prisma_service.js'
+import { ExtendedPrismaClient, HashConfig, ResolvedConfig } from '../src/types.js'
 
 declare module '@adonisjs/core/types' {
   interface ContainerBindings {
@@ -22,7 +24,9 @@ export default class PrismaProvider {
    */
   register() {
     this.app.container.singleton('prisma:db', async () => {
-      return extendedPrisma
+      const config = this.app.config.get<ResolvedConfig>('prisma')
+      const hashConfig = this.app.config.get<HashConfig>('hash')
+      return generatePrismaClient(config, hashConfig, new PrismaClient())
     })
   }
 

@@ -1,19 +1,17 @@
 import type { SessionGuardUser, SessionUserProviderContract } from '@adonisjs/auth/types/session'
 
-import { extendedPrisma } from './prisma_service.js'
-import { ExtendedModels, GenericPrismaModel, ModelData } from './types.js'
 import { symbols } from '@adonisjs/auth'
-
-export type Session<Model extends ExtendedModels> = Omit<ModelData<Model>, 'password'>
+import { ExtendedModels, ModelData } from './types.js'
+import app from '@adonisjs/core/services/app'
 
 export class SessionPrismaUserProvider<Model extends ExtendedModels>
-  implements SessionUserProviderContract<Session<Model>>
+  implements SessionUserProviderContract<ModelData<Model>>
 {
-  declare [symbols.PROVIDER_REAL_USER]: Session<Model>
+  declare [symbols.PROVIDER_REAL_USER]: ModelData<Model>
 
   constructor(protected model: Model) {}
 
-  async createUserForGuard(user: Session<Model>): Promise<SessionGuardUser<Session<Model>>> {
+  async createUserForGuard(user: ModelData<Model>): Promise<SessionGuardUser<ModelData<Model>>> {
     return {
       getId() {
         return user.id
@@ -24,10 +22,9 @@ export class SessionPrismaUserProvider<Model extends ExtendedModels>
     }
   }
 
-  async findById(identifier: string): Promise<null | SessionGuardUser<Session<Model>>> {
-    const user = await (
-      extendedPrisma[this.model] as unknown as GenericPrismaModel<Model>
-    ).findUnique({
+  async findById(identifier: string): Promise<null | SessionGuardUser<ModelData<Model>>> {
+    const prisma = await app.container.make('prisma:db')
+    const user = await prisma[this.model].findUnique({
       where: { id: identifier },
     })
 
@@ -35,6 +32,6 @@ export class SessionPrismaUserProvider<Model extends ExtendedModels>
       return null
     }
 
-    return this.createUserForGuard(user)
+    return this.createUserForGuard(user as unknown as ModelData<Model>)
   }
 }

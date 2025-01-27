@@ -1,35 +1,31 @@
 import type { Hash } from '@adonisjs/core/hash'
 
 import { errors } from '@adonisjs/auth'
-import config from '@adonisjs/core/services/config'
 import hash from '@adonisjs/core/services/hash'
-import { PrismaClient as BasePrismaClient, Prisma } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { ModelConfig } from './define_config.js'
 import {
+  ExtendedPrismaClient,
   GenericPrismaModel,
   HashConfig,
   ModelData,
   ModelExtensions,
-  PrismaClient,
   QueryExtensions,
   ResolvedConfig,
 } from './types.js'
 import { getArrayOfKeys, getModelConfig } from './utils.js'
 
-const prismaClient: PrismaClient = new BasePrismaClient()
-
-interface GenericUser {
-  id: string
-  password: string
-}
-
-export const withAuthFinder = (hashService: () => Hash, prismaConfig: ResolvedConfig) => {
+export const withAuthFinder = (
+  hashService: () => Hash,
+  prismaConfig: ResolvedConfig,
+  prismaClient: PrismaClient
+) => {
   return Prisma.defineExtension({
     model: getArrayOfKeys(prismaConfig).reduce<ModelExtensions>(
       (acc, model) => ({
         ...acc,
         [model]: {
-          findForAuth(value: string): Promise<ModelData<typeof model> | null> {
+          async findForAuth(value): Promise<ModelData<typeof model> | null> {
             return (prismaClient[model] as unknown as GenericPrismaModel<typeof model>).findFirst({
               where: {
                 OR: (prismaConfig[model] as ModelConfig<typeof model>).uniqueIds.map((uid) => ({
@@ -38,7 +34,7 @@ export const withAuthFinder = (hashService: () => Hash, prismaConfig: ResolvedCo
               },
             })
           },
-          async verifyCredentials(uid: string, password: string) {
+          async verifyCredentials(uid, password) {
             const user = await this.findForAuth(uid)
             if (!user) {
               await hashService().make(password)
@@ -81,7 +77,7 @@ export const withAuthFinder = (hashService: () => Hash, prismaConfig: ResolvedCo
           },
           async findMany({ args, query }) {
             const results = await query(args)
-            results.forEach((result: Partial<GenericUser>) => {
+            results.forEach((result: Partial<ModelData<typeof model>>) => {
               if (getModelConfig(model, prismaConfig).sanitizePassword) {
                 delete result.password
               }
@@ -109,11 +105,12 @@ export const withAuthFinder = (hashService: () => Hash, prismaConfig: ResolvedCo
   })
 }
 
-const hashConfig = config.get<HashConfig>('hash')
-const prismaConfig = config.get<ResolvedConfig>('prisma')
-
-export const extendedPrisma = prismaClient.$extends(
-  withAuthFinder(() => hash.use(hashConfig.default), prismaConfig)
-)
-
-export type ExtendedPrismaClient = typeof extendedPrisma
+export function generatePrismaClient(
+  prismaConfig: ResolvedConfig,
+  hashConfig: HashConfig,
+  prismaClient: PrismaClient
+) {
+  return prismaClient.$extends(
+    withAuthFinder(() => hash.use(hashConfig.default), prismaConfig, prismaClient)
+  ) as ExtendedPrismaClient
+}
