@@ -1,4 +1,6 @@
 import { IgnitorFactory } from '@adonisjs/core/factories'
+import { Hash } from '@adonisjs/core/hash'
+import { Scrypt } from '@adonisjs/core/hash/drivers/scrypt'
 import { AppEnvironments } from '@adonisjs/core/types/app'
 import { FileSystem } from '@japa/file-system'
 import { execa } from 'execa'
@@ -7,30 +9,8 @@ import { fileURLToPath } from 'node:url'
 export const APP_ROOT = new URL('./tmp/', import.meta.url)
 export const SQLITE_BASE_PATH = fileURLToPath(APP_ROOT)
 
-export async function createFiles(fs: FileSystem) {
-  await fs.createJson('package.json', {
-    type: 'module',
-  })
-  await fs.createJson('tsconfig.json', {})
-  await fs.create('adonisrc.ts', `export default defineConfig({})`)
-  await fs.create(
-    'start/kernel.ts',
-    `
-      import router from '@adonisjs/core/services/router'
-      import server from '@adonisjs/core/services/server'
-  
-      router.use([
-        () => import('@adonisjs/core/bodyparser_middleware'),
-      ])
-  
-      server.use([])
-    `
-  )
-}
-
-export async function createFilesWithPrisma(fs: FileSystem) {
+export async function initPrisma(fs: FileSystem, cwd: string) {
   await fs.create('tmp/dev.db', '')
-  await createFiles(fs)
   await fs.create(
     'prisma/schema.prisma',
     `
@@ -52,6 +32,7 @@ export async function createFilesWithPrisma(fs: FileSystem) {
   }
   `
   )
+  await execa({ cwd })`npx prisma db push`
 }
 
 export async function fakeSeederFile(fs: FileSystem) {
@@ -116,4 +97,8 @@ export async function createFakeAdonisApp(args: {} = {}, env: AppEnvironments = 
   ace.ui.switchMode('normal')
 
   return { app, ace }
+}
+
+export function getHasher() {
+  return new Hash(new Scrypt({}))
 }

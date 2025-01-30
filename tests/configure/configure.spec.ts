@@ -1,11 +1,27 @@
-import { test } from '@japa/runner'
-import { createFakeAdonisApp, createFiles } from '../../test-helpers/index.js'
 import Configure from '@adonisjs/core/commands/configure'
+import { test } from '@japa/runner'
+import { createFakeAdonisApp } from '../../test-helpers/index.js'
 
 test.group('Configure', (group) => {
-  group.tap((t) => t.timeout(20_000))
   group.each.setup(async ({ context }) => {
-    await createFiles(context.fs)
+    await context.fs.createJson('package.json', {
+      type: 'module',
+    })
+    await context.fs.createJson('tsconfig.json', {})
+    await context.fs.create('adonisrc.ts', `export default defineConfig({})`)
+    await context.fs.create(
+      'start/kernel.ts',
+      `
+          import router from '@adonisjs/core/services/router'
+          import server from '@adonisjs/core/services/server'
+      
+          router.use([
+            () => import('@adonisjs/core/bodyparser_middleware'),
+          ])
+      
+          server.use([])
+        `
+    )
   })
   test('create config file and register provider', async ({ fs, assert }) => {
     await fs.create('.env', '')

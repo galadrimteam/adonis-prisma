@@ -20,6 +20,10 @@ configure({
       name: 'provider',
       files: ['tests/provider/**/*.spec.ts'],
     },
+    {
+      name: 'session_provider',
+      files: ['tests/session_provider/**/*.spec.ts'],
+    },
   ],
 })
 

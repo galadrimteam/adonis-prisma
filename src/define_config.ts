@@ -1,3 +1,4 @@
+import type { Hash } from '@adonisjs/core/hash'
 import { SessionPrismaUserProvider } from './session_user_provider.js'
 import { ExtendedModels, ModelData, ExtendableModels } from './types.js'
 
@@ -6,8 +7,9 @@ export type PrismaConfig = {
 }
 
 export interface ModelConfig<Model extends ExtendableModels> {
-  uniqueIds: (keyof ModelData<Model>)[]
-  sanitizePassword?: boolean
+  hash: () => Hash
+  uids: (keyof ModelData<Model>)[]
+  passwordColumnName: keyof ModelData<Model>
 }
 
 export function defineConfig<Config extends Partial<PrismaConfig>>(config: Config) {

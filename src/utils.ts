@@ -1,8 +1,9 @@
-import { isScriptFile, fsReadAll, slash } from '@poppinss/utils'
+import { fsReadAll, isScriptFile, slash } from '@poppinss/utils'
+import { Prisma } from '@prisma/client'
 import { extname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { ModelConfig } from './define_config.js'
-import { ExtendedModels, PrismaSeederFile, ResolvedConfig } from './types.js'
+import { ExtendedModels, PrimaryKey, PrismaSeederFile, ResolvedConfig } from './types.js'
 
 export function getArrayOfKeys<T extends Record<string, unknown>>(obj: T): (keyof T)[] {
   return Object.keys(obj) as (keyof T)[]
@@ -67,4 +68,55 @@ export async function sourceFiles(
       }
     }),
   }
+}
+
+export function getModelPrimaryKey<Model extends ExtendedModels>(modelName: Model) {
+  const model = Prisma.dmmf.datamodel.models.find(
+    (m) => m.name.toLowerCase() === modelName.toLowerCase()
+  )
+
+  if (!model) {
+    throw new Error(`Model ${modelName} not found`)
+  }
+
+  const primaryKey = model.fields.find((f) => f.isId)
+
+  if (!primaryKey) {
+    throw new Error(`Primary key not found for model ${modelName}`)
+  }
+
+  return primaryKey.name as PrimaryKey<typeof modelName>
+}
+
+export function getFieldsWithType<Model extends ExtendedModels>(
+  model: Model,
+  prismaConfig: ResolvedConfig,
+  value: unknown
+) {
+  const extendedFields = getModelConfig(model, prismaConfig).uids
+  const type = typeof value
+
+  const fields = Prisma.dmmf.datamodel.models.find(
+    (m) => m.name.toLowerCase() === model.toLowerCase()
+  )?.fields
+
+  if (!fields) {
+    throw new Error(`Model ${model} not found`)
+  }
+
+  return extendedFields.filter(
+    (f) => prismaToNodeTypes[fields.find((field) => field.name === f)?.type ?? ''] === type
+  )
+}
+
+const prismaToNodeTypes: Record<string, string> = {
+  BigInt: 'bigint',
+  Boolean: 'boolean',
+  Bytes: 'Buffer | Uint8Array',
+  DateTime: 'Date',
+  Decimal: 'string', //* Prisma retourne un string
+  Float: 'number',
+  Int: 'number',
+  JSON: 'any',
+  String: 'string',
 }

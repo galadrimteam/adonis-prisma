@@ -4,20 +4,14 @@ import { AceFactory } from '@adonisjs/core/factories'
 import app from '@adonisjs/core/services/app'
 import { test } from '@japa/runner'
 import { PrismaClient } from '@prisma/client'
-import { execa } from 'execa'
-import {
-  cleanupDatabase,
-  createFiles,
-  createFilesWithPrisma,
-  fakeSeederFile,
-} from '../../test-helpers/index.js'
+import { cleanupDatabase, fakeSeederFile, initPrisma } from '../../test-helpers/index.js'
 
 let ace: Kernel
 
 test.group('PrismaSeed', (group) => {
   group.each.disableTimeout()
   group.each.setup(async ({ context }) => {
-    await createFiles(context.fs)
+    await context.fs.cleanup()
     ace = await new AceFactory().make(context.fs.baseUrl, { importer: () => {} })
     ace.ui.switchMode('raw')
     await ace.app.init()
@@ -31,8 +25,7 @@ test.group('PrismaSeed', (group) => {
       return prismaClient
     })
 
-    await createFilesWithPrisma(fs)
-    await execa({ cwd: ace.app.makePath() })`npx prisma db push`
+    await initPrisma(fs, ace.app.makePath())
     await fakeSeederFile(fs)
     await assert.fileExists('prisma/seeders/user_seeder.ts')
     const command = await ace.create(PrismaSeed, [])

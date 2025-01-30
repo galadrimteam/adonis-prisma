@@ -5,6 +5,7 @@ import {
   DynamicQueryExtensionCbArgs,
   InternalArgs,
   ModelKey,
+  RequiredKeys,
 } from '@prisma/client/runtime/library'
 import { PrismaConfig } from './define_config.js'
 
@@ -30,35 +31,34 @@ export type InferConfig<Config extends Partial<PrismaConfig>> = Required<Config>
 export interface GenericPrismaModel<Model extends ExtendedModels> {
   findFirst: (where: {
     where: {
-      OR: Record<string, string>[]
+      OR: Record<string, string | number | BigInt>[]
     }
   }) => Promise<ModelData<Model> | null>
   findUnique: (where: {
     where: {
-      id: string
+      [key: string]: string | number | BigInt
     }
   }) => Promise<ModelData<Model> | null>
 }
 
-export type ExtendedOperations =
-  | 'create'
-  | 'findFirst'
-  | 'findFirstOrThrow'
-  | 'findMany'
-  | 'findUnique'
-  | 'findUniqueOrThrow'
+export type PrimaryKey<Model extends ExtendedModels> = PrismaClient[Model] extends {
+  findUnique: (arg: {
+    where: infer Where
+    select?: infer _Select
+    omit?: infer _Omit
+  }) => Promise<infer _Response>
+}
+  ? keyof RequiredKeys<Where>
+  : never
 
 export type ModelData<Model extends ExtendableModels> = PrismaClient[Model] extends {
   findFirstOrThrow: (...args: infer _Args) => Promise<infer T>
 }
-  ? T & { id: string }
+  ? T & { [key in PrimaryKey<Model>]: string }
   : never
 
-export type FindForAuth<Model extends ExtendableModels> = (
-  value: string
-) => Promise<ModelData<Model> | null>
 export type VerifyCredentials<Model extends ExtendableModels> = (
-  uid: string,
+  uid: string | number | BigInt,
   password: string
 ) => Promise<Omit<ModelData<Model>, 'password'>>
 
@@ -78,13 +78,12 @@ export type ExtendedPrismaClient = DynamicClientExtensionThis<
       result: {}
       model: {
         [Model in keyof ResolvedConfig]: {
-          findForAuth: () => FindForAuth<Model>
           verifyCredentials: () => VerifyCredentials<Model>
         }
       }
       query: {
         [Model in keyof ResolvedConfig]: {
-          [Operation in ExtendedOperations]: PrismaExtension<Operation, Model>
+          [Operation in ExtendedOperation]: PrismaExtension<Model, Operation>
         }
       }
       client: {}
@@ -96,13 +95,12 @@ export type ExtendedPrismaClient = DynamicClientExtensionThis<
     result: {}
     model: {
       [Model in keyof ResolvedConfig]: {
-        findForAuth: () => FindForAuth<Model>
         verifyCredentials: () => VerifyCredentials<Model>
       }
     }
     query: {
       [Model in keyof ResolvedConfig]: {
-        [Operation in ExtendedOperations]: PrismaExtension<Operation, Model>
+        [Operation in ExtendedOperation]: PrismaExtension<Model, Operation>
       }
     }
     client: {}
@@ -115,29 +113,25 @@ export type HashConfig = { default: string }
 type TypeMap = Prisma.Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.Prisma.PrismaClientOptions>
 
 type PrismaOperationResult<
-  Operation extends ExtendedOperations,
   Model extends ExtendedModels,
+  Operation extends ExtendedOperation,
 > = TypeMap['model'][ModelKey<TypeMap, Model>]['operations'][Operation]['result']
 
-type PrismaExtension<Operation extends ExtendedOperations, Model extends ExtendedModels> = (
+type ExtendedOperation = 'create' | 'update'
+
+type PrismaExtension<Model extends ExtendedModels, Operation extends ExtendedOperation> = (
   args: DynamicQueryExtensionCbArgs<TypeMap, 'model', ModelKey<TypeMap, Model>, Operation>
-) => ResolvedConfig[Model]['sanitizePassword'] extends true
-  ? Promise<
-      PrismaOperationResult<Operation, Model> extends Array<infer Item>
-        ? Array<Omit<Item, 'password'>>
-        : Omit<PrismaOperationResult<Operation, Model>, 'password'>
-    >
-  : Promise<PrismaOperationResult<Operation, Model>>
+) => Promise<PrismaOperationResult<Model, Operation>>
 
 export type ModelExtensions = {
   [Model in keyof ResolvedConfig]: {
-    findForAuth: FindForAuth<Model>
     verifyCredentials: VerifyCredentials<Model>
   }
 }
 export type QueryExtensions = {
   [Model in ExtendedModels]: {
-    [Operation in ExtendedOperations]: PrismaExtension<Operation, Model>
+    create: PrismaExtension<Model, 'create'>
+    update: PrismaExtension<Model, 'update'>
   }
 }
 
