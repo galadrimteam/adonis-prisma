@@ -152,3 +152,7 @@ export type PrismaSeederStatus = {
   error?: any
   file: PrismaSeederFile<unknown>
 }
+export abstract class PrismaSeederBase {
+  static developmentOnly: boolean
+  abstract run(): Promise<unknown>
+}
