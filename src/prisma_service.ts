@@ -3,7 +3,6 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import {
   ExtendedPrismaClient,
   GenericPrismaModel,
-  ModelData,
   ModelExtensions,
   QueryExtensions,
   ResolvedConfig,
@@ -31,16 +30,14 @@ export const withAuthFinder = (prismaConfig: ResolvedConfig, prismaClient: Prism
               throw new errors.E_INVALID_CREDENTIALS('Invalid user credentials')
             }
 
-            const {
-              [prismaConfig[model].passwordColumnName]: userPassword,
-              ...userWithoutPassword
-            } = user
+            const userPassword = user[prismaConfig[model].passwordColumnName]
 
-            if (
-              userPassword &&
-              (await prismaConfig[model].hash().verify(userPassword as string, password))
-            ) {
-              return userWithoutPassword as Omit<ModelData<typeof model>, 'password'>
+            if (typeof userPassword !== 'string') {
+              throw new Error('Incorrect password column type')
+            }
+
+            if (userPassword && (await prismaConfig[model].hash().verify(userPassword, password))) {
+              return user
             }
 
             throw new errors.E_INVALID_CREDENTIALS('Invalid user credentials')

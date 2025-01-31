@@ -3,8 +3,7 @@ import { Prisma } from '@prisma/client'
 import { extname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { ModelConfig } from './define_config.js'
-import { ExtendedModels, PrismaSeederFile, ResolvedConfig } from './types.js'
-import { SessionUser } from './session_user_provider.js'
+import { ExtendedModels, ModelData, PrismaSeederFile, ResolvedConfig } from './types.js'
 
 export function getArrayOfKeys<T extends Record<string, unknown>>(obj: T): (keyof T)[] {
   return Object.keys(obj) as (keyof T)[]
@@ -86,7 +85,7 @@ export function getModelPrimaryKey<Model extends ExtendedModels>(modelName: Mode
     throw new Error(`Primary key not found for model ${modelName}`)
   }
 
-  return primaryKey.name as keyof SessionUser<Model>
+  return primaryKey.name as keyof ModelData<Model>
 }
 
 export function getFieldsWithType<Model extends ExtendedModels>(

@@ -49,7 +49,7 @@ export type ModelData<Model extends ExtendableModels> = PrismaClient[Model] exte
 export type VerifyCredentials<Model extends ExtendableModels> = (
   uid: string | number | BigInt,
   password: string
-) => Promise<Omit<ModelData<Model>, 'password'>>
+) => Promise<ModelData<Model>>
 
 export type ExtendableModels = {
   [Model in keyof PrismaClient]: PrismaClient[Model] extends {
