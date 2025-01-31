@@ -12,16 +12,16 @@
 |
 */
 
-import ConfigureCommand from '@adonisjs/core/commands/configure'
 import string from '@poppinss/utils/string'
 import { DIALECTS, presetPrisma } from './src/presets_prisma.js'
+import Configure from '@adonisjs/core/commands/configure'
 
-export async function configure(_command: ConfigureCommand) {
-  let dialect: string | undefined = _command.parsedFlags.db
-  let shouldInstallPackages: boolean | undefined = _command.parsedFlags.install
+export async function configure(command: Configure) {
+  let dialect: string | undefined = command.parsedFlags.db
+  let shouldInstallPackages: boolean | undefined = command.parsedFlags.install
 
   if (dialect === undefined) {
-    dialect = await _command.prompt.choice(
+    dialect = await command.prompt.choice(
       'Select the database you want to use',
       Object.keys(DIALECTS),
       {
@@ -33,17 +33,17 @@ export async function configure(_command: ConfigureCommand) {
     )
   }
   if (dialect! in DIALECTS === false) {
-    _command.logger.error(
+    command.logger.error(
       `The selected database "${dialect}" is invalid. Select one from: ${string.sentence(
         Object.keys(DIALECTS)
       )}`
     )
-    _command.exitCode = 1
+    command.exitCode = 1
     return
   }
 
   if (shouldInstallPackages === undefined) {
-    shouldInstallPackages = await _command.prompt.confirm(
+    shouldInstallPackages = await command.prompt.confirm(
       'Do you want to install additional packages required by "@galadrim/adonis-prisma"?',
       {
         name: 'shouldInstallPackages',
@@ -51,9 +51,9 @@ export async function configure(_command: ConfigureCommand) {
     )
   }
 
-  const codemods = await _command.createCodemods()
+  const codemods = await command.createCodemods()
 
-  await presetPrisma(codemods, _command.app, {
+  await presetPrisma(codemods, command.app, {
     dialect: dialect as keyof typeof DIALECTS,
     installPackages: !!shouldInstallPackages,
   })
