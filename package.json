@@ -1,11 +1,11 @@
 {
   "name": "@galadrim/adonis-prisma",
   "description": "Prisma provider for AdonisJS",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "node": ">=20.6.0"
   },
-  "main": "build/index.js",
+  "main": "./build/index.js",
   "type": "module",
   "files": [
     "build",
@@ -16,7 +16,8 @@
   "exports": {
     ".": "./build/index.js",
     "./types": "./build/src/types.js",
-    "./prisma_provider": "./build/providers/prisma_provider.js"
+    "./prisma_provider": "./build/providers/prisma_provider.js",
+    "./commands": "./build/commands/main.js"
   },
   "scripts": {
     "clean": "del-cli build",
@@ -29,10 +30,11 @@
     "test": "c8 pnpm run quick:test",
     "prebuild": "pnpm run lint && pnpm run clean",
     "build": "tsc",
-    "postbuild": "pnpm run copy:templates",
+    "postbuild": "pnpm run copy:templates && pnpm run index:commands",
     "release": "np",
     "version": "pnpm run build",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "index:commands": "adonis-kit index build/commands"
   },
   "keywords": [],
   "author": "",
@@ -86,11 +88,6 @@
     "exclude": [
       "tests/**"
     ]
-  },
-  "imports": {
-    "#commands/*": "./commands/*.js",
-    "#providers/*": "./providers/*.js",
-    "#src/*": "./src/*.js"
   },
   "prettier": "@adonisjs/prettier-config"
 }

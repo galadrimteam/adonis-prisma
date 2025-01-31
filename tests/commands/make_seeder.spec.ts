@@ -1,6 +1,6 @@
-import MakeSeeder from '#commands/make_seeder'
 import { AceFactory } from '@adonisjs/core/factories'
 import { test } from '@japa/runner'
+import PrismaMakeSeeder from '../../commands/make_seeder.js'
 
 test.group('MakeSeeder', (group) => {
   group.each.teardown(async () => {
@@ -10,7 +10,7 @@ test.group('MakeSeeder', (group) => {
     const ace = await new AceFactory().make(fs.baseUrl, { importer: () => {} })
     await ace.app.init()
 
-    const command = await ace.create(MakeSeeder, ['user'])
+    const command = await ace.create(PrismaMakeSeeder, ['user'])
     await command.exec()
 
     command.assertSucceeded()

@@ -1,10 +1,10 @@
-import PrismaSeed from '#commands/prisma_seed'
 import { Kernel } from '@adonisjs/core/ace'
 import { AceFactory } from '@adonisjs/core/factories'
 import app from '@adonisjs/core/services/app'
 import { test } from '@japa/runner'
 import { PrismaClient } from '@prisma/client'
 import { cleanupDatabase, fakeSeederFile, initPrisma } from '../../test-helpers/index.js'
+import PrismaSeed from '../../commands/prisma_seed.js'
 
 let ace: Kernel
 

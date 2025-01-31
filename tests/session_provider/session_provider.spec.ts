@@ -1,8 +1,8 @@
-import { defineConfig } from '#src/define_config'
-import { SessionPrismaUserProvider } from '#src/session_user_provider'
 import { ApplicationService } from '@adonisjs/core/types'
 import { test } from '@japa/runner'
 import { createFakeAdonisApp, getHasher, initPrisma } from '../../test-helpers/index.js'
+import { defineConfig } from '../../src/define_config.js'
+import { SessionPrismaUserProvider } from '../../src/session_user_provider.js'
 
 let app: ApplicationService
 

@@ -1,9 +1,9 @@
 import type { SessionGuardUser, SessionUserProviderContract } from '@adonisjs/auth/types/session'
 
-import { getModelPrimaryKey } from '#src/utils'
 import { symbols } from '@adonisjs/auth'
 import app from '@adonisjs/core/services/app'
 import { ExtendedModels, GenericPrismaModel, ModelData } from './types.js'
+import { getModelPrimaryKey } from './utils.js'
 
 export class SessionPrismaUserProvider<Model extends ExtendedModels>
   implements SessionUserProviderContract<ModelData<Model>>
