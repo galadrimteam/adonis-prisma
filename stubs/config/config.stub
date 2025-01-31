@@ -1,14 +1,13 @@
-{{{
-    exports({ to: app.configPath('prisma.ts')})
-}}}
 import type Prisma from '@prisma/client'
 
+import hash from '@adonisjs/core/services/hash'
 import { defineConfig } from '@galadrim/adonis-prisma'
 
 const prismaConfig = defineConfig({
   user: {
-    sanitizePassword: false,
-    uniqueIds: ['id'],
+    passwordColumnName: 'password',
+    hash: () => hash.use(),
+    uids: ['id'],
   },
 })
 
