@@ -1,18 +1,11 @@
-import { HttpContext } from '@adonisjs/core/http'
 import { ApplicationService } from '@adonisjs/core/types'
 import { PrismaClient } from '@prisma/client'
-import { generatePrismaClient } from '../src/prisma_service.js'
+import { generatePrismaClient } from '../src/mixins/prisma.js'
 import { ExtendedPrismaClient, ResolvedConfig } from '../src/types.js'
 
 declare module '@adonisjs/core/types' {
   interface ContainerBindings {
     'prisma:db': ExtendedPrismaClient
-  }
-}
-
-declare module '@adonisjs/core/http' {
-  interface HttpContext {
-    prisma: ExtendedPrismaClient
   }
 }
 
@@ -32,12 +25,7 @@ export default class PrismaProvider {
   /**
    * The container bindings have booted
    */
-  async boot() {
-    const prismaDb = await this.app.container.make('prisma:db')
-    HttpContext.getter('prisma', function (this: HttpContext) {
-      return prismaDb
-    })
-  }
+  async boot() {}
 
   /**
    * The application has been booted

@@ -6,8 +6,8 @@ import {
   ModelExtensions,
   QueryExtensions,
   ResolvedConfig,
-} from './types.js'
-import { getArrayOfKeys, getFieldsWithType } from './utils.js'
+} from '../types.js'
+import { getArrayOfKeys, getFieldsWithType } from '../utils.js'
 
 export const withAuthFinder = (prismaConfig: ResolvedConfig, prismaClient: PrismaClient) => {
   return Prisma.defineExtension({
