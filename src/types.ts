@@ -5,7 +5,6 @@ import {
   DynamicQueryExtensionCbArgs,
   InternalArgs,
   ModelKey,
-  RequiredKeys,
 } from '@prisma/client/runtime/library'
 import { PrismaConfig } from './define_config.js'
 
@@ -41,20 +40,10 @@ export interface GenericPrismaModel<Model extends ExtendedModels> {
   }) => Promise<ModelData<Model> | null>
 }
 
-export type PrimaryKey<Model extends ExtendedModels> = PrismaClient[Model] extends {
-  findUnique: (arg: {
-    where: infer Where
-    select?: infer _Select
-    omit?: infer _Omit
-  }) => Promise<infer _Response>
-}
-  ? keyof RequiredKeys<Where>
-  : never
-
 export type ModelData<Model extends ExtendableModels> = PrismaClient[Model] extends {
   findFirstOrThrow: (...args: infer _Args) => Promise<infer T>
 }
-  ? T & { [key in PrimaryKey<Model>]: string }
+  ? T
   : never
 
 export type VerifyCredentials<Model extends ExtendableModels> = (
