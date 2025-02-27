@@ -1,119 +1,106 @@
-# AdonisJS package starter kit
+# Adonis JS Prisma Adapter
 
-> A boilerplate for creating AdonisJS packages
+This is an AdonisJS provider for Prisma ORM.
 
-This repo provides you with a starting point for creating AdonisJS packages. Of course, you can create a package from scratch with your folder structure and workflow. However, using this starter kit can speed up the process, as you have fewer decisions to make.
+## Getting Started
 
-## Setup
+### Installation
 
-- Clone the repo on your computer, or use `giget` to download this repo without the Git history.
-  ```sh
-  npx giget@latest gh:adonisjs/pkg-starter-kit
-  ```
-- Install dependencies.
-- Update the `package.json` file and define the `name`, `description`, `keywords`, and `author` properties.
-- The repo is configured with an MIT license. Feel free to change that if you are not publishing under the MIT license.
-
-## Folder structure
-
-The starter kit mimics the folder structure of the official packages. Feel free to rename files and folders as per your requirements.
-
-```
-├── providers
-├── src
-├── bin
-├── stubs
-├── configure.ts
-├── index.ts
-├── LICENSE.md
-├── package.json
-├── README.md
-├── tsconfig.json
-├── tsnode.esm.js
+```sh
+node ace add @galadrim/adonis-prisma
 ```
 
-- The `configure.ts` file exports the `configure` hook to configure the package using the `node ace configure` command.
-- The `index.ts` file is the main entry point of the package.
-- The `tsnode.esm.js` file runs TypeScript code using TS-Node + SWC. Please read the code comment in this file to learn more.
-- The `bin` directory contains the entry point file to run Japa tests.
-- Learn more about [the `providers` directory](./providers/README.md).
-- Learn more about [the `src` directory](./src/README.md).
-- Learn more about [the `stubs` directory](./stubs/README.md).
+This command will scaffold the config files, providers and create a prisma folder with `prisma.schema` file.
 
-### File system naming convention
+### Post Installation
 
-We use `snake_case` naming conventions for the file system. The rule is enforced using ESLint. However, turn off the rule and use your preferred naming conventions.
+After installation, you should run the proper commands to migrate your schema and/or generate the Prisma Client :
 
-## Peer dependencies
-
-The starter kit has a peer dependency on `@adonisjs/core@6`. Since you are creating a package for AdonisJS, you must make it against a specific version of the framework core.
-
-If your package needs Lucid to be functional, you may install `@adonisjs/lucid` as a development dependency and add it to the list of `peerDependencies`.
-
-As a rule of thumb, packages installed in the user application should be part of the `peerDependencies` of your package and not the main dependency.
-
-For example, if you install `@adonisjs/core` as a main dependency, then essentially, you are importing a separate copy of `@adonisjs/core` and not sharing the one from the user application. Here is a great article explaining [peer dependencies](https://blog.bitsrc.io/understanding-peer-dependencies-in-javascript-dbdb4ab5a7be).
-
-## Published files
-
-Instead of publishing your repo's source code to npm, you must cherry-pick files and folders to publish only the required files.
-
-The cherry-picking uses the `files` property inside the `package.json` file. By default, we publish the following files and folders.
-
-```json
-{
-  "files": ["build/src", "build/providers", "build/stubs", "build/index.d.ts", "build/index.js"]
-}
+```sh
+  npx prisma generate
 ```
 
-If you create additional folders or files, mention them inside the `files` array.
+## Usage
 
-## Exports
+You have two options to use the Prisma Client.
 
-[Node.js Subpath exports](https://nodejs.org/api/packages.html#subpath-exports) allows you to define the exports of your package regardless of the folder structure. This starter kit defines the following exports.
+- By destructuring `HttpContext`object :
 
-```json
-{
-  "exports": {
-    ".": "./build/index.js",
-    "./types": "./build/src/types.js"
-  }
-}
+```javascript
+//route.ts
+
+router
+  .get('/', async function ({ prisma }: HttpContext) {
+    ...
+    const posts = await prisma.post.findMany())
+    ...
+  })
 ```
 
-- The dot `.` export is the main export.
-- The `./types` exports all the types defined inside the `./build/src/types.js` file (the compiled output).
+- By importing prisma from `@galadrim/adonis-prisma/services` :
 
-Feel free to change the exports as per your requirements.
+```javascript
+import prisma from '@galadrim/adonis-prisma/services'
+```
 
-## Testing
+### Authentication
 
-We configure the [Japa test runner](https://japa.dev/) with this starter kit. Japa is used in AdonisJS applications as well. Just run one of the following commands to execute tests.
+First, you should configure the `prisma` service inside `config/prisma.ts` file.
 
-- `npm run test`: This command will first lint the code using ESlint and then run tests and report the test coverage using [c8](https://github.com/bcoe/c8).
-- `npm run quick:test`: Runs only the tests without linting or coverage reporting.
+```javascript
+export const prismaConfig = defineConfig({
+  user: {
+    hash: () => hash.use(),
+    passwordColumnName: 'password',
+    uids: ['email', 'id'],
+  },
+})
+```
 
-The starter kit also has a Github workflow file to run tests using Github Actions. The tests are executed against `Node.js 20.x` and `Node.js 21.x` versions on both Linux and Windows. Feel free to edit the workflow file in the `.github/workflows` directory.
+The `user` key is the model name you want to use for authentication. Then you can configure it the same way you would with the withAuthFinder mixin from `@adonisjs/lucid`.
 
-## TypeScript workflow
+- hash: The hash function to use for hashing the password.
+- passwordColumnName: The name of the column to store the password.
+- uids: The list of columns to use for authentication.
 
-- The starter kit uses [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) for compiling the TypeScript to JavaScript when publishing the package.
-- [TS-Node](https://typestrong.org/ts-node/) and [SWC](https://swc.rs/) are used to run tests without compiling the source code.
-- The `tsconfig.json` file is extended from [`@adonisjs/tsconfig`](https://github.com/adonisjs/tooling-config/tree/main/packages/typescript-config) and uses the `NodeNext` module system. Meaning the packages are written using ES modules.
-- You can perform type checking without compiling the source code using the `npm run type check` script.
+Then,you should install the `@adonisjs/auth` and configure it with `Session` as Auth Guard.
+Then, you should replace the `provider` key in the `config/auth.ts` file with this:
 
-Feel free to explore the `tsconfig.json` file for all the configured options.
+```javascript
+//config/auth.ts
+  import { sessionUserProvider } from '@galadrim/adonis-prisma'
+  import { configProvider } from '@adonisjs/core'
+  ... other imports
 
-## ESLint and Prettier setup
+  ...
+       user: sessionGuard({
+          provider: sessionUserProvider('user'),
+          useRememberMeTokens: false,
+        }),
+```
 
-The starter kit configures ESLint and Prettier
-using our [shared config](https://github.com/adonisjs/tooling-config/tree/main/packages).
-ESLint configuration is stored within the `eslint.config.js` file.
-Prettier configuration is stored within the `package.json` file.
-Feel free to change the configuration, use custom plugins, or remove both tools altogether.
+After that, you can use the provided methods to facilitate the authentication flow. Like, the `@adonisjs/lucid`, there is two methods for authentication
 
-## Using Stale bot
+- To verify user credentials, you can use this method : ` const user = await prisma.user.verifyCredentials('email', 'password')`
 
-The [Stale bot](https://github.com/apps/stale) is a Github application that automatically marks issues and PRs as stale and closes after a specific duration of inactivity.
+- The password is automatically hashed via the `@adonisjs/hash` package when creating or updating an user, based on the default hasher configured inside the `config/hash.ts`.
 
-Feel free to delete the `.github/stale.yml` and `.github/lock.yml` files if you decide not to use the Stale bot.
+**_NB_**: For now the package doesn't support the `refreshToken` method. I'm working on it.
+
+### Database Seeding
+
+You can define seeders for your DB with the following command :
+
+```sh
+node ace make:seeder <name_of_the_seeder>
+```
+
+It will create a seeder file inside the `prisma/seeders` directory.
+
+Then, to seed the database you should run :
+`node ace prisma:seed` command.
+**_NB_**: This command runs all the seeders files inside `prisma/seeders` directory.
+
+## Before leaving...
+
+Credit to [ArthurFranckPat](https://github.com/ArthurFranckPat/adonis-prisma), I used a lot of his work as a base for this package, mainly for the seeder (and this doc)

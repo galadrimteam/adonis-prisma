@@ -2,7 +2,9 @@ import { BaseCommand, args, flags } from '@adonisjs/core/ace'
 import { stubsRoot } from '../index.js'
 
 export default class PrismaMakeSeeder extends BaseCommand {
-  static commandName = 'prisma:make-seeder'
+  static commandName = 'make:seeder'
+
+  static description = 'Create a new Prisma seeder'
 
   @args.string({ description: 'Name of the seeder class' })
   declare name: string

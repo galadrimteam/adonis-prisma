@@ -4,6 +4,7 @@ import { CommandOptions } from '@adonisjs/core/types/ace'
 
 export default class PrismaSeed extends BaseCommand {
   static commandName = 'prisma:seed'
+  static description = 'Run the seeders'
   static options: CommandOptions = {
     startApp: true,
   }
