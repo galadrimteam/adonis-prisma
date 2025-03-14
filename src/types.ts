@@ -93,8 +93,7 @@ export type ExtendedPrismaClient = DynamicClientExtensionThis<
       }
     }
     client: {}
-  },
-  Prisma.Prisma.PrismaClientOptions
+  }
 >
 
 export type HashConfig = { default: string }
