@@ -1,5 +1,5 @@
 import { errors } from '@adonisjs/auth'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '#prisma'
 import {
   ExtendedPrismaClient,
   GenericPrismaModel,

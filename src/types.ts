@@ -1,4 +1,4 @@
-import Prisma from '@prisma/client'
+import { PrismaClient as BasePrismaClient, Prisma } from '#prisma'
 import {
   DefaultArgs,
   DynamicClientExtensionThis,
@@ -17,7 +17,7 @@ export type ExtendedModels = keyof ResolvedConfig
 /**
  * PrismaClient needs to be extended to use the correct PrismaClient
  */
-export interface PrismaClient extends Prisma.PrismaClient {}
+export interface PrismaClient extends BasePrismaClient {}
 
 /**
  * Infer the config type
@@ -53,16 +53,14 @@ export type VerifyCredentials<Model extends ExtendableModels> = (
 
 export type ExtendableModels = {
   [Model in keyof PrismaClient]: PrismaClient[Model] extends {
-    findFirstOrThrow: (...args: infer _Args) => Promise<infer T>
+    findFirstOrThrow: (...args: infer _Args) => Promise<unknown>
   }
-    ? 'password' extends keyof T
-      ? Model
-      : never
+    ? Model
     : never
 }[keyof PrismaClient]
 
 export type ExtendedPrismaClient = DynamicClientExtensionThis<
-  Prisma.Prisma.TypeMap<
+  Prisma.TypeMap<
     InternalArgs & {
       result: {}
       model: {
@@ -77,9 +75,9 @@ export type ExtendedPrismaClient = DynamicClientExtensionThis<
       }
       client: {}
     },
-    Prisma.Prisma.PrismaClientOptions
+    Prisma.PrismaClientOptions
   >,
-  Prisma.Prisma.TypeMapCb,
+  Prisma.TypeMapCb,
   {
     result: {}
     model: {
@@ -98,7 +96,7 @@ export type ExtendedPrismaClient = DynamicClientExtensionThis<
 
 export type HashConfig = { default: string }
 
-type TypeMap = Prisma.Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.Prisma.PrismaClientOptions>
+type TypeMap = Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.PrismaClientOptions>
 
 type PrismaOperationResult<
   Model extends ExtendedModels,
@@ -144,3 +142,5 @@ export abstract class PrismaSeederBase {
   static developmentOnly: boolean
   abstract run(): Promise<unknown>
 }
+
+export type Id = string | number | BigInt

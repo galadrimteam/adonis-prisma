@@ -3,10 +3,8 @@ import type { SessionGuardUser, SessionUserProviderContract } from '@adonisjs/au
 import { symbols } from '@adonisjs/auth'
 import app from '@adonisjs/core/services/app'
 import { PrismaConfig } from '../define_config.js'
-import { ExtendedModels, GenericPrismaModel, ModelData } from '../types.js'
+import { ExtendedModels, GenericPrismaModel, Id, ModelData } from '../types.js'
 import { getModelConfig, getModelPrimaryKey } from '../utils.js'
-
-type Id = string | number | BigInt
 
 export class SessionPrismaUserProvider<Model extends ExtendedModels>
   implements SessionUserProviderContract<ModelData<Model>>

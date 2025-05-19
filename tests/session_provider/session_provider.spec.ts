@@ -35,7 +35,7 @@ test.group('Session user provider | Prisma', (group) => {
     const prismaClient = await app.container.make('prisma:db')
     await prismaClient.user.create({
       data: {
-        id: 1,
+        id: 'uniqueId',
         name: 'John Doe',
         email: 'C9Ykz@example.com',
         password: '123456',
@@ -48,7 +48,7 @@ test.group('Session user provider | Prisma', (group) => {
 
     const originalUser:
       | {
-          id: number
+          id: string
           name: string
           email: string
           password?: string

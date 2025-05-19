@@ -1,5 +1,5 @@
 import { ApplicationService } from '@adonisjs/core/types'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '#prisma'
 import { generatePrismaClient } from '../src/mixins/prisma.js'
 import { ExtendedPrismaClient, ResolvedConfig } from '../src/types.js'
 

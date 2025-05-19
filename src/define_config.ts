@@ -1,6 +1,7 @@
 import type { Hash } from '@adonisjs/core/hash'
 import { SessionPrismaUserProvider } from './session_guard/user_provider.js'
 import { ExtendedModels, ModelData, ExtendableModels } from './types.js'
+import { AccessTokensPrismaUserProvider } from './token_guard/access_tokens_prisma_user_provider.js'
 
 export type PrismaConfig = {
   [Model in ExtendableModels[][number]]: ModelConfig<Model>
@@ -21,5 +22,5 @@ export function sessionUserProvider<T extends ExtendedModels>(model: T) {
 }
 
 export function sessionWithTokensUserProvider<T extends ExtendedModels>(model: T) {
-  return new SessionPrismaUserProvider(model)
+  return new AccessTokensPrismaUserProvider(model)
 }

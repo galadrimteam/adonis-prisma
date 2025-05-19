@@ -1,7 +1,7 @@
 {{{
     exports({ to: app.configPath('prisma.ts')})
 }}}
-import type Prisma from '@prisma/client'
+import type Prisma from '#prisma'
 
 import hash from '@adonisjs/core/services/hash'
 import { defineConfig } from '@galadrim/adonis-prisma'

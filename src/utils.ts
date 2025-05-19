@@ -1,5 +1,5 @@
 import { fsReadAll, isScriptFile, slash } from '@poppinss/utils'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '#prisma'
 import { extname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { ModelConfig } from './define_config.js'
